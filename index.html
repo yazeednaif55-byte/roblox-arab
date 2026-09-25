@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker Prank Tool</title>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #000;
+            border: 2px solid #00ff00;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.3);
+            text-align: center;
+        }
+        input {
+            width: 90%;
+            padding: 12px;
+            background: #111;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 5px;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #00cc00;
+            box-shadow: 0 0 15px #00ff00;
+        }
+        #result {
+            margin-top: 20px;
+            background: #050505;
+            border: 1px dashed #00ff00;
+            padding: 15px;
+            min-height: 50px;
+            text-align: right;
+            font-size: 14px;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>[ SYSTEM CRACKER ]</h2>
+        <p style="font-size: 12px; color: #00bb00;">   انتبه لا يتم كشفك</p>
+        
+        <input type="text" id="username" placeholder="اكتب اليوزر هنا..." autocomplete="off">
+        <button onclick="startPrank()">بدء الاختراق </button>
+
+        <div id="result">> في الانتظار...</div>
+    </div>
+
+    <script>
+        function startPrank() {
+            const user = document.getElementById('username').value.trim();
+            const res = document.getElementById('result');
+
+            if (!user) {
+                res.innerText = "> خطأ: يرجى كتابة اليوزر أولاً!";
+                return;
+            }
+
+            res.innerText = "> جاري الاتصال بالخادم ...\n";
+
+            setTimeout(() => {
+                res.innerText += `> تم جلب الهدف: [ ${user} ]\n`;
+            }, 800);
+
+            setTimeout(() => {
+                res.innerText += `> جاري كسر التشفير وسحب الباسورد...\n`;
+            }, 1800);
+
+            setTimeout(() => {
+                // توليد باسورد عشوائي مأخوذ جزء منه من اليوزر
+                const prefix = user.substring(0, 3).toLowerCase();
+                const randomNum = Math.floor(100 + Math.random() * 900);
+                const fakePassword = prefix + "_" + randomNum + "5663";
+
+                res.innerText += `\n> تم العثور على الباسورد بنجاح!\n`;
+                res.innerText += `> كلمة المرور : ${fakePassword}`;
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
