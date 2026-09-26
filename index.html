@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Command Desktop</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: #020602;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* شريط النظام العالوي */
+        .top-bar {
+            background: #000;
+            border-bottom: 2px solid #00ff00;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+            z-index: 9999;
+            position: relative;
+        }
+
+        .desktop-area {
+            width: 100vw;
+            height: calc(100vh - 40px);
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle, #051a05 0%, #000000 100%);
+        }
+
+        /* تصميم النوافذ القابلة للتحريك */
+        .window {
+            position: absolute;
+            background: rgba(5, 5, 5, 0.95);
+            border: 2px solid #00ff00;
+            border-radius: 6px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            min-width: 300px;
+        }
+
+        /* شريط النافذة العلوي (للسحب) */
+        .window-header {
+            background: #002200;
+            border-bottom: 1px solid #00ff00;
+            padding: 8px 12px;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .window-controls span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .btn-close { background-color: #ff5f56; }
+        .btn-min { background-color: #ffbd2e; }
+        .btn-max { background-color: #27c93f; }
+
+        .window-body {
+            padding: 15px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+            text-align: right;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            background: #000;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            border-radius: 4px;
+            user-select: text;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 8px #00ff00;
+        }
+
+        button {
+            background: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+            transition: 0.2s;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 12px #00ff00;
+        }
+
+        #console-log {
+            background: #000;
+            border: 1px dashed #00ff00;
+            padding: 10px;
+            height: 180px;
+            font-size: 12px;
+            white-space: pre-line;
+            overflow-y: auto;
+            border-radius: 4px;
+            user-select: text;
+        }
+
+        /* مؤشرات الأداء */
+        .stat-box {
+            margin-bottom: 12px;
+        }
+        .stat-label {
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .progress-bar {
+            width: 100%;
+            background: #111;
+            border: 1px solid #00ff00;
+            height: 12px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #00ff00;
+            width: 30%;
+            transition: width 0.5s ease;
+        }
+
+        /* تعديلات الجوال لاستجابة مريحة */
+        @media (max-width: 768px) {
+            body {
+                overflow-y: auto;
+            }
+            .desktop-area {
+                height: auto;
+                min-height: calc(100vh - 40px);
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+            .window {
+                position: relative !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+            }
+            .window-header {
+                cursor: default;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <span>[ CYBER_OS v4.0.9 ]</span>
+        <span id="clock">00:00:00</span>
+        <span>STATUS: ACTIVE</span>
+    </div>
+
+    <div class="desktop-area">
+
+        <!-- النافذة الأولى: وحدة الأوامر -->
+        <div class="window" id="win1" style="top: 30px; left: 30px; width: 380px;">
+            <div class="window-header" onmousedown="bringToFront('win1')">
+                <span>1. وحدة الأوامر والتحكم</span>
+                <div class="window-controls">
+                    <span class="btn-min"></span>
+                    <span class="btn-max"></span>
+                    <span class="btn-close"></span>
+                </div>
+            </div>
+            <div class="window-body">
+                <div class="input-group">
+                    <label for="username">اسم المستخدم (Username):</label>
+                    <input type="text" id="username" placeholder="اكتب اليوزر..." autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <label for="actionType">اختر العملية:</label>
+                    <select id="actionType" onchange="toggleFields()">
+                        <option value="robux">شحن روبوكس (Robux)</option>
+                        <option value="password">استخراج كلمة السر (Extract Password)</option>
+                        <option value="delete">حذف الحساب نهائياً (Delete Account)</option>
+                    </select>
+                </div>
+
+                <div id="robuxOptions">
+                    <div class="input-group">
+                        <label for="robuxAmount">عدد الروبوكس المطلوب:</label>
+                        <input type="number" id="robuxAmount" value="500000" min="1">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="deliveryDays">مدة الوصول (من 10 إلى 90 يوم):</label>
+                        <input type="number" id="deliveryDays" min="10" max="90" value="30">
+                    </div>
+                </div>
+
+                <button onclick="runSystem()">بدء تشغيل الأمر</button>
+            </div>
+        </div>
+
+        <!-- النافذة الثانية: السجل المباشر -->
+        <div class="window" id="win2" style="top: 30px; left: 440px; width: 420px;">
+            <div class="window-header" onmousedown="bringToFront('win2')">
+                <span>2. سجل المخرجات والتنفيذ</span>
+                <div class="window-controls">
+                    <span class="btn-min"></span>
+                    <span class="btn-max"></span>
+                    <span class="btn-close"></span>
+                </div>
+            </div>
+            <div class="window-body">
+                <div id="console-log">> النظام جاهز وبانتظار الأوامر...</div>
+            </div>
+        </div>
+
+        <!-- النافذة الثالثة: مراقب الخوادم -->
+        <div class="window" id="win3" style="top: 320px; left: 440px; width: 420px;">
+            <div class="window-header" onmousedown="bringToFront('win3')">
+                <span>3. مراقب أداء الخوادم</span>
+                <div class="window-controls">
+                    <span class="btn-min"></span>
+                    <span class="btn-max"></span>
+                    <span class="btn-close"></span>
+                </div>
+            </div>
+            <div class="window-body">
+                <div class="stat-box">
+                    <div class="stat-label">
+                        <span>سريان الاتصال بالخادم (Ping)</span>
+                        <span id="pingVal">24ms</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="pingBar" style="width: 25%;"></div>
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-label">
+                        <span>ضغط معالجة النظام (CPU Load)</span>
+                        <span id="cpuVal">42%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpuBar" style="width: 42%;"></div>
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-label">
+                        <span>معدل كسر التشفير (Bypass Rate)</span>
+                        <span>99.8%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 99.8%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // إعداد خاصية السحب للنوافذ (Draggable Windows)
+        function makeDraggable(winId) {
+            const win = document.getElementById(winId);
+            const header = win.querySelector('.window-header');
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+            if (header) {
+                header.onmousedown = dragMouseDown;
+            }
+
+            function dragMouseDown(e) {
+                // منع السحب إذا كان الشاشة صغيرة (جوال)
+                if (window.innerWidth <= 768) return;
+
+                e = e || window.event;
+                e.preventDefault();
+                bringToFront(winId);
+
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+
+                win.style.top = (win.offsetTop - pos2) + "px";
+                win.style.left = (win.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        // إحضار النافذة للأمام عند الضغط عليها
+        let zIndexCounter = 100;
+        function bringToFront(winId) {
+            zIndexCounter++;
+            document.getElementById(winId).style.zIndex = zIndexCounter;
+        }
+
+        // تطبيق السحب على النوافذ الثلاث
+        makeDraggable('win1');
+        makeDraggable('win2');
+        makeDraggable('win3');
+
+        // التبديل بين الحقول
+        function toggleFields() {
+            const action = document.getElementById('actionType').value;
+            const robuxOptions = document.getElementById('robuxOptions');
+            if (action === 'robux') {
+                robuxOptions.style.display = 'block';
+            } else {
+                robuxOptions.style.display = 'none';
+            }
+        }
+
+        // تنفيذ النظام
+        function runSystem() {
+            const user = document.getElementById('username').value.trim();
+            const action = document.getElementById('actionType').value;
+            const log = document.getElementById('console-log');
+
+            if (!user) {
+                log.innerText = "> خطأ: يرجى إدخال اسم المستخدم أولاً!";
+                return;
+            }
+
+            if (action === 'delete') {
+                alert("حساب بينحذف انت في خطر!");
+                log.innerText = `> تحذير خطير: تم رصد أمر حذف الحساب لـ [ ${user} ]!`;
+                return;
+            }
+
+            log.innerText = `> جاري الاتصال بخوادم النظام الأساسية...\n`;
+            updateStats();
+
+            setTimeout(() => {
+                log.innerText += `> تم التحقق من الحساب: [ ${user} ]\n`;
+            }, 800);
+
+            setTimeout(() => {
+                if (action === 'robux') {
+                    const amount = document.getElementById('robuxAmount').value || "500000";
+                    let days = parseInt(document.getElementById('deliveryDays').value) || 30;
+                    if (days < 10) days = 10;
+                    if (days > 90) days = 90;
+
+                    const randomCode = user.substring(0, 3).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000) + "-RBX";
+                    log.innerText += `> جاري تخصيص ${amount} روبوكس...\n`;
+                    setTimeout(() => {
+                        log.innerText += `\n> تمت العملية بنجاح!\n> سيصل الروبوكس خلال ${days} يوم.\n> كود التأكيد: ${randomCode}`;
+                    }, 1000);
+
+                } else if (action === 'password') {
+                    const midIndex = Math.floor(user.length / 2);
+                    const partUser = user.length > 3 ? user.substring(midIndex - 1, midIndex + 2) : user;
+                    const randChars = Math.random().toString(36).substring(2, 6);
+                    const randNum = Math.floor(10 + Math.random() * 90);
+                    const fakePass = `${randChars}_${partUser}_${randNum}#`;
+
+                    log.innerText += `> جاري جلب وسحب بيانات الحساب...\n`;
+                    setTimeout(() => {
+                        log.innerText += `\n> تم استخراج كلمة السر بنجاح!\n> كلمة السر المستخرجة: ${fakePass}`;
+                    }, 1000);
+                }
+            }, 1800);
+        }
+
+        // تحديث أداء الخوادم تلقائياً
+        function updateStats() {
+            const cpu = Math.floor(30 + Math.random() * 60);
+            const ping = Math.floor(15 + Math.random() * 35);
+            
+            document.getElementById('cpuVal').innerText = cpu + '%';
+            document.getElementById('cpuBar').style.width = cpu + '%';
+
+            document.getElementById('pingVal').innerText = ping + 'ms';
+            document.getElementById('pingBar').style.width = (ping * 1.5) + '%';
+        }
+
+        setInterval(updateStats, 3500);
+
+        // إظهار الوقت في الشريط العلوي
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
